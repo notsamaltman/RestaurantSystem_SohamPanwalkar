@@ -1,8 +1,9 @@
 
-const GlassBrandBar = () => {
+const GlassBrandBar = ({topheight=20}) => {
   return (
     <div className="fixed top-0 left-0 w-full z-50">
       <div
+      style={{top:topheight}}
         className="
           mx-auto
           max-w-4xl
@@ -10,7 +11,6 @@ const GlassBrandBar = () => {
           px-6
           py-4
           relative
-          top-20
           flex
           items-center
           justify-between

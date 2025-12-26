@@ -26,6 +26,7 @@ from .serializers import (
 def create_user(request):
     if(request.method=="POST"):
         serialiser = StaffAdminSerializer(data=request.data)
+        
         if serialiser.is_valid():
             user = serialiser.save()
             refresh = RefreshToken.for_user(user)

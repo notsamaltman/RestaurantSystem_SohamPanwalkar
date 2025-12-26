@@ -10,7 +10,7 @@ export default function FeaturePage() {
   return (
     <div className="relative h-screen overflow-hidden bg-[#08090a]/95 flex justify-center items-center">
     
-      <div ><GlassBrandBar/></div>
+      <div ><GlassBrandBar topheight={100}/></div>
       
 
       {/* Glass card */}
@@ -78,7 +78,7 @@ export default function FeaturePage() {
           <Button
             variant="outlined"
             onClick={()=>{
-              navigate("/redirect")
+              navigate("/register/admin")
             }}
             sx={{
               mt: 4,

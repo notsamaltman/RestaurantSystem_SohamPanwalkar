@@ -1,6 +1,6 @@
 import { Route, BrowserRouter, Routes, Navigate } from "react-router-dom";
 import FeaturePage from "./pages/FeaturePage";
-import RedirectPage from "./pages/RedirectPage";
+import RedirectPage from "./pages/AdminRegisterPage";
 
 function App() {
   return (
@@ -8,7 +8,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/feature" replace />} />
         <Route path="/feature" element={<FeaturePage />} />
-        <Route path="/redirect" element={<RedirectPage />} />
+        <Route path="/register/admin" element={<RedirectPage />} />
       </Routes>
     </BrowserRouter>
   );
