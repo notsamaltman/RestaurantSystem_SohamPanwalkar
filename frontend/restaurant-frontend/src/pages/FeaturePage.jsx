@@ -2,11 +2,10 @@ import SplitText from '../components/SplitText';
 import RotatingText from '../components/RotatingText';
 import GlassBrandBar from '../components/GlassBrandBar';
 import { Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export default function FeaturePage() {
-  const handleAnimationComplete = () => {
-    console.log("Animation complete");
-  };
+  const navigate = useNavigate();
 
   return (
     <div className="relative h-screen overflow-hidden bg-[#08090a]/95 flex justify-center items-center">
@@ -42,7 +41,6 @@ export default function FeaturePage() {
               threshold={0.1}
               rootMargin="-100px"
               textAlign="center"
-              onLetterAnimationComplete={handleAnimationComplete}
             />
           </div>
           <div className='flex justify-center items-center'>
@@ -59,7 +57,6 @@ export default function FeaturePage() {
               threshold={0.1}
               rootMargin="-100px"
               textAlign="center"
-              onLetterAnimationComplete={handleAnimationComplete}
             />
 
             <RotatingText
@@ -80,6 +77,9 @@ export default function FeaturePage() {
         <div>
           <Button
             variant="outlined"
+            onClick={()=>{
+              navigate("/redirect")
+            }}
             sx={{
               mt: 4,
               px: 4,
@@ -112,5 +112,8 @@ export default function FeaturePage() {
     </div>
   );
 }
+
+
+
 
 

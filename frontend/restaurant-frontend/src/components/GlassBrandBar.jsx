@@ -1,3 +1,4 @@
+
 const GlassBrandBar = () => {
   return (
     <div className="fixed top-0 left-0 w-full z-50">
@@ -32,7 +33,7 @@ const GlassBrandBar = () => {
 
         {/* Page Context (not navigation) */}
         <div className="text-sm text-white/70 hidden sm:block">
-          making your restaurants faster!
+          making your restaurant faster!
         </div>
       </div>
     </div>
