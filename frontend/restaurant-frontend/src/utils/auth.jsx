@@ -4,7 +4,7 @@ export const isAuthenticated = ()=>{
     return Boolean(localStorage.getItem("accessToken"));
 }
 
-export const ProtectedRoutes = ([children])=>{
+export const ProtectedRoutes = ({children})=>{
     if(!isAuthenticated()){
         return <Navigate to="/feature"/>;
     }

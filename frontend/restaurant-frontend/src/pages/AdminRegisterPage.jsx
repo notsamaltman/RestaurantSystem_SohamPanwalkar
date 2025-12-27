@@ -14,25 +14,82 @@ import Alert from '@mui/material/Alert';
 import {Stack} from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import GlassBrandBar from "@/components/GlassBrandBar";
+import { serverLink } from "@/utils/links";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminRegister() {
+
+  const link = serverLink+'signup/';
+  const navigate = useNavigate();
 
   const [username, setUserName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastname, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [date, setDate] = useState(new Date());
   const [password, setPassword] = useState('');
   const [confirmpassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (e)=>{
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if(password!==confirmpassword){
-      createError("Password's do not match!");
-    }
+  // Frontend validation (exit early)
+  if (!username || !firstName || !lastname || !email || !password || !confirmpassword) {
+    createError("No fields can be empty!");
+    return;
   }
+
+  if (password !== confirmpassword) {
+    createError("Passwords do not match!");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await fetch(link, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username:username,
+        first_name: firstName,
+        last_name: lastname,
+        email:email,
+        password:password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      createError(data.error || "Signup failed");
+      return;
+    }
+    setSuccess(true);
+
+    localStorage.setItem("adminName", username);
+    localStorage.setItem("first_name", firstName);
+    localStorage.setItem("last_name", lastname);
+    localStorage.setItem("email", email);
+    localStorage.setItem("accessToken", data.access);
+    localStorage.setItem("refreshToken", data.refresh);
+
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 2000);
+
+    console.log("Admin created", data);
+
+  } catch (error) {
+    createError("Network error. Try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const createError = (error)=>{
     setError(error);
@@ -90,17 +147,6 @@ export default function AdminRegister() {
                 onChange={(e)=>{setEmail(e.target.value)}}
               />
 
-              <DatePicker
-                label="Date of Birth"
-                disableFuture
-                openTo="year"
-                views={["year", "month", "day"]}
-                slotProps={{
-                  textField: { fullWidth: true },
-                }}
-                onChange={(e)=>{setDate(new Date(e.target.value))}}
-              />
-
               <Divider />
 
               <TextField
@@ -125,6 +171,10 @@ export default function AdminRegister() {
               <Button
                 fullWidth
                 size="large"
+                variant="outlined"
+                color={success?"success":""}
+                loading={loading}
+                
                 sx={{
                   mt: 1,
                   py: 1.2,

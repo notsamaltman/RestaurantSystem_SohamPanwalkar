@@ -1,13 +1,14 @@
 from rest_framework import serializers
 from .models import (
     Restaurant,
-    Category,
-    Dish,
-    Menu,
+    MenuCategory,
+    MenuItem,
+    Table,
     Order,
     OrderItem,
-    StaffAdmin
 )
+
+from django.contrib.auth.models import User
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
@@ -18,7 +19,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Category
+        model = MenuCategory
         fields = "__all__"
 
 
@@ -26,15 +27,15 @@ class DishSerializer(serializers.ModelSerializer):
     category_name = serializers.ReadOnlyField(source="category.name")
 
     class Meta:
-        model = Dish
+        model = MenuItem
         fields = "__all__"
 
 
-class MenuSerializer(serializers.ModelSerializer):
+class TableSerializer(serializers.ModelSerializer):
     dishes = DishSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Menu
+        model = Table
         fields = "__all__"
 
 
@@ -60,24 +61,29 @@ class OrderSerializer(serializers.ModelSerializer):
             for item in obj.items.all()
         )
 
-
-class StaffAdminSerializer(serializers.ModelSerializer):
+class AdminSignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
-        model = StaffAdmin
+        model = User
         fields = [
-            "id",
+            "username",
+            "first_name",
+            "last_name",
             "email",
-            "name",
-            "role",
-            "is_active",
-            "password"
+            "password",
         ]
 
     def create(self, validated_data):
-        password = validated_data.pop("password")
-        user = StaffAdmin(**validated_data)
-        user.set_password(password)
-        user.save()
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
+            first_name=validated_data["first_name"],
+            last_name=validated_data["last_name"],
+            is_staff=True,      # admin access
+            is_superuser=True   # optional, depends on your system
+        )
         return user
+
+

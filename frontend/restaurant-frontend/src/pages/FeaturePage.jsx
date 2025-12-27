@@ -3,9 +3,15 @@ import RotatingText from '../components/RotatingText';
 import GlassBrandBar from '../components/GlassBrandBar';
 import { Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { isAuthenticated } from '@/utils/auth';
+import { useEffect } from 'react';
 
 export default function FeaturePage() {
   const navigate = useNavigate();
+
+  useEffect(()=>{
+    if(isAuthenticated()) navigate('/dashboard');
+  }, []);
 
   return (
     <div className="relative h-screen overflow-hidden bg-[#08090a]/95 flex justify-center items-center">

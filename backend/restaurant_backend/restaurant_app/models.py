@@ -11,10 +11,6 @@ class Restaurant(models.Model):
 
     def __str__(self):
         return self.name
-    
-class StaffProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
 
 class Table(models.Model):
     restaurant = models.ForeignKey(
