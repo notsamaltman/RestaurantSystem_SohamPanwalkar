@@ -1,9 +1,21 @@
-import { Box, AppBar, Toolbar, Typography, Button, Container, Paper } from "@mui/material";
+import { Box, Typography, Button, Container, Paper } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 export default function DashboardPage() {
-  // TEMP: replace with backend-driven state
+  const navigate = useNavigate();
   const hasRestaurant = false;
   const firstName = localStorage.getItem("first_name");
+
+  const handleLogOut = ()=>{
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("adminName");
+    localStorage.removeItem("first_name");
+    localStorage.removeItem("last_name");
+    localStorage.removeItem("email");
+
+    navigate("/login");
+  };
 
   return (
 
@@ -49,7 +61,9 @@ export default function DashboardPage() {
 
         {/* Page Context (not navigation) */}
         <div className="text-sm text-white/70 hidden sm:block">
-          <Button variant="outlined">Log Out</Button>
+          <Button variant="outlined" onClick={()=>{handleLogOut()}}>
+            Log Out
+          </Button>
         </div>
       </div>
     </div>
@@ -69,7 +83,7 @@ export default function DashboardPage() {
           variant="h3"
           sx={{ fontWeight: 700, mb: 2 }}
         >
-          {!hasRestaurant?("welcome, "+firstName+" register your first restaurant!!"):("welcome, "+firstName)}
+          {!hasRestaurant?("Welcome, "+firstName+" let's get started digitizing your first restaurant"):("welcome, "+firstName)}
         </Typography>
 
         <Typography

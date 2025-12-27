@@ -18,7 +18,6 @@ export default function FeaturePage() {
     
       <div ><GlassBrandBar topheight={100}/></div>
       
-
       {/* Glass card */}
       <div className="w-200 h-120 relative rounded-3xl bg-blue-900/3 backdrop-blur-xl border border-white/10 shadow-xl p-3 flex flex-col justify-around items-center top-10">
         <div>
@@ -84,7 +83,7 @@ export default function FeaturePage() {
           <Button
             variant="outlined"
             onClick={()=>{
-              navigate("/register/admin")
+              navigate("/register")
             }}
             sx={{
               mt: 4,
@@ -109,9 +108,7 @@ export default function FeaturePage() {
             Get started
           </Button>
 
-
         </div>
-
 
       </div>      
 

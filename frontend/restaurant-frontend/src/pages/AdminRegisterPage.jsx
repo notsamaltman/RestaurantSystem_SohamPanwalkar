@@ -9,15 +9,21 @@ import {
   Paper,
   Divider,
 } from "@mui/material";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider} from "@mui/x-date-pickers";
 import Alert from '@mui/material/Alert';
 import {Stack} from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import GlassBrandBar from "@/components/GlassBrandBar";
 import { serverLink } from "@/utils/links";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { isAuthenticated } from "@/utils/auth";
 
 export default function AdminRegister() {
+
+  useEffect(()=>{
+      if(isAuthenticated()) navigate('/dashboard');
+    }, []);
 
   const link = serverLink+'signup/';
   const navigate = useNavigate();
@@ -66,7 +72,7 @@ export default function AdminRegister() {
     const data = await response.json();
 
     if (!response.ok) {
-      createError(data.error || "Signup failed");
+      createError(data.detail || "Signup failed");
       return;
     }
     setSuccess(true);
@@ -167,6 +173,8 @@ export default function AdminRegister() {
                   <Alert severity="error">{error}</Alert>
                 </Stack>
               )}
+
+              <Button onClick={()=>{navigate("/login")}}>Already have an account?</Button>
 
               <Button
                 fullWidth
