@@ -57,7 +57,6 @@ def login_user(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
-    # Generate tokens
     refresh = RefreshToken.for_user(user)
 
     return Response(
