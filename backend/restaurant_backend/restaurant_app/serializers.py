@@ -6,6 +6,7 @@ from .models import (
     Table,
     Order,
     OrderItem,
+    MenuImage
 )
 
 from django.contrib.auth.models import User
@@ -32,10 +33,26 @@ class DishSerializer(serializers.ModelSerializer):
 
 
 class TableSerializer(serializers.ModelSerializer):
-    dishes = DishSerializer(many=True, read_only=True)
+    qr_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
+        fields = [
+            "id",
+            "table_number",
+            "qr_token",
+            "qr_image_url",
+        ]
+
+    def get_qr_image_url(self, obj):
+        if obj.qr_image:
+            request = self.context.get("request")
+            return request.build_absolute_uri(obj.qr_image.url)
+        return None
+
+class MenuImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MenuImage
         fields = "__all__"
 
 

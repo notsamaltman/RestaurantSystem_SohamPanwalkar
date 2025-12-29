@@ -3,6 +3,8 @@ import FeaturePage from "./pages/FeaturePage";
 import RedirectPage from "./pages/AdminRegisterPage";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
+import RestaurantPageOne from "./pages/RestaurantPageOne";
+import RestaurantPageTwo from "./pages/RestaurantPageTwo";
 import { ProtectedRoutes } from "./utils/auth";
 
 function App() {
@@ -18,6 +20,17 @@ function App() {
           </ProtectedRoutes>
         } />
         <Route path="/login" element={ <LoginPage/> } />
+        <Route path="/register/restaurant-1" element={
+          <ProtectedRoutes>
+            <RestaurantPageOne/>
+          </ProtectedRoutes>
+        } />
+        <Route path="/register/restaurant-2" element={
+          <ProtectedRoutes>
+            <RestaurantPageTwo/>
+          </ProtectedRoutes>
+        } />
+
       </Routes>
     </BrowserRouter>
   );

@@ -113,6 +113,7 @@ export default function DashboardPage() {
             <Button
               fullWidth
               size="large"
+              onClick={()=>{navigate("/register/restaurant-1")}}
               sx={{
                 borderRadius: 3,
                 py: 1.5,

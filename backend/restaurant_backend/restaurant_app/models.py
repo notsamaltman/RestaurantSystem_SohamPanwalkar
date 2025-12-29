@@ -5,6 +5,7 @@ class Restaurant(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     address = models.TextField()
+    no_of_tables = models.IntegerField(default=10)
     is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -20,6 +21,11 @@ class Table(models.Model):
     )
     table_number = models.PositiveIntegerField()
     qr_token = models.CharField(max_length=100, unique=True)
+    qr_image = models.ImageField(
+        upload_to="qr/",
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         return f"{self.restaurant.name} - Table {self.table_number}"
@@ -53,6 +59,18 @@ class MenuItem(models.Model):
 
     def __str__(self):
         return self.name
+    
+class MenuImage(models.Model):
+    restaurant = models.ForeignKey(
+        Restaurant,
+        on_delete=models.CASCADE,
+        related_name="menu_images"
+    )
+    image = models.ImageField(upload_to="menus/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"MenuImage {self.id} for {self.restaurant.name}"
     
 class Order(models.Model):
     STATUS_CHOICES = [
