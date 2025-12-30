@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import RestaurantPageOne from "./pages/RestaurantPageOne";
 import RestaurantPageTwo from "./pages/RestaurantPageTwo";
+import RestaurantPageThree from "./pages/RestaurantPageThree";
 import { ProtectedRoutes } from "./utils/auth";
 
 function App() {
@@ -30,7 +31,11 @@ function App() {
             <RestaurantPageTwo/>
           </ProtectedRoutes>
         } />
-
+        <Route path="/register/restaurant-3" element={
+          <ProtectedRoutes>
+            <RestaurantPageThree/>
+          </ProtectedRoutes>
+        } />
       </Routes>
     </BrowserRouter>
   );

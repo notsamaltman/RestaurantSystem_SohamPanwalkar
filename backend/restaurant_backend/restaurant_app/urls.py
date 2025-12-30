@@ -8,7 +8,6 @@ urlpatterns = [
     path('login/', views.login_user),
     path('register/', views.register_restaurant),
     path('upload/', views.upload_menu),
-    path('upload/progress/<str:job_id>/', views.menu_progress),
 ]
 
 if settings.DEBUG:

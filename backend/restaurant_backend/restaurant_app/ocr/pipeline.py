@@ -8,34 +8,15 @@ load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
 
-def pipeline(
-    path: str,
-    progress: Optional[Callable[[int, str], None]] = None
-) -> str:
-
-    def report(pct: int, msg: str):
-        if progress:
-            progress(pct, msg)
-        else:
-            print(f"[{pct}%] {msg}")
-
-    # ---- STEP 1: OCR ----
-    report(10, "Initializing OCR engine")
+def pipeline( path: str, ) -> str:
     reader = easyocr.Reader(['en'], gpu=False)
-
-    report(20, "Reading image and extracting text")
     ocrtext = reader.readtext(path, detail=0, paragraph=True)
-
-    report(30, "OCR completed")
 
     print("\nRAW OCR OUTPUT:")
     for line in ocrtext:
         print(line)
 
     menu_text = "\n".join(ocrtext)
-
-    # ---- STEP 2: Prompt ----
-    report(40, "Preparing AI prompt")
 
     prompt = ChatPromptTemplate.from_messages([
         ("system",
@@ -72,20 +53,13 @@ def pipeline(
         """)
     ])
 
-    # ---- STEP 3: LLM ----
-    report(50, "Sending menu text to LLM")
-
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
         google_api_key=API_KEY,
-        temperature=0.2  # slight creativity ONLY for suggestions
+        temperature=0.2  
     )
 
     messages = prompt.format_messages(menu_text=menu_text)
 
     response = llm.invoke(messages)
-
-    report(90, "LLM response received")
-    report(100, "Pipeline completed")
-
     return response.content

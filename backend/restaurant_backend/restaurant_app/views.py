@@ -1,10 +1,14 @@
 import uuid
-from rest_framework.decorators import api_view
+import json
+import os
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from django.core.cache import cache
+from rest_framework.permissions import IsAuthenticated
+
 from .models import (
     Restaurant,
     MenuCategory,
@@ -78,17 +82,12 @@ def login_user(request):
     )
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def register_restaurant(request):
     restaurant_name = request.data.get("restaurant_name")
 
-import os
-import uuid
-from django.conf import settings
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.core.cache import cache
-
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def upload_menu(request):
     image = request.FILES.get("menu")
 
@@ -97,57 +96,25 @@ def upload_menu(request):
 
     job_id = str(uuid.uuid4())
 
-    # ✅ Use MEDIA_ROOT/uploads
     upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
     os.makedirs(upload_dir, exist_ok=True)
 
     image_path = os.path.join(upload_dir, f"{job_id}.jpg")
 
-    # ✅ Save image safely
     with open(image_path, "wb+") as f:
         for chunk in image.chunks():
             f.write(chunk)
 
-    def progress_callback(pct, msg):
-        cache.set(
-            f"menu_progress_{job_id}",
-            {
-                "progress": pct,   # 👈 match frontend
-                "step": msg
-            },
-            timeout=300
-        )
+    result = pipeline(image_path)
+    cleaned = result.replace("```json", "").replace("```", "").strip()
 
-    # INITIAL STATE
-    progress_callback(0, "Starting OCR")
-
-    # 🔥 Run pipeline
-    result = pipeline(image_path, progress=progress_callback)
-
-    # Store final result
-    cache.set(
-        f"menu_result_{job_id}",
-        result,
-        timeout=300
-    )
+    parsed = json.loads(cleaned)
 
     return Response({
-        "job_id": job_id,
-        "status": "processing"
+        "result": parsed,
     }, status=202)
 
 
-@api_view(["GET"])
-def menu_progress(request, job_id):
-    progress = cache.get(f"menu_progress_{job_id}")
-
-    if not progress:
-        return Response(
-            {"detail": "Invalid job ID"},
-            status=404
-        )
-
-    return Response(progress)
 
 
 

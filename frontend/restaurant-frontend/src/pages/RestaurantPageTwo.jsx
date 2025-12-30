@@ -9,47 +9,58 @@ export default function RestaurantPageTwo() {
   const navigate = useNavigate();
   const link = serverLink+'upload/';
   const [file, setFile] = useState(null);
-  const [jobId, setJobId] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const [step, setStep] = useState('Waiting for menu upload');
+  const [loading, setLoading] = useState(false);
 
-  // 🔁 Poll OCR status
-  useEffect(() => {
-    if (!jobId) return;
+  const normalizeAIMenu = (parsed) => {
+  if (!parsed || !parsed.categories) return [];
 
-    const interval = setInterval(async () => {
-      const res = await fetch(link+`progress/${jobId}/`);
-      const data = await res.json();
+  return parsed.categories.flatMap(category =>
+    category.dishes.map(dish => ({
+      name: dish.name,
+      price: dish.price ?? "",
+      description:
+        dish.description ||
+        dish.ai_suggested_description ||
+        "",
+      category: category.name,
+      veg: !/chicken|prawns|fish|mutton|egg/i.test(dish.name),
+    }))
+  );
+  };
 
-      setProgress(data.progress);
-      setStep(data.step);
 
-      if (data.progress === 100) {
-        clearInterval(interval);
-        navigate('/register/menu-review');
-      }
-    }, 1200);
+const uploadMenu = async () => {
+  setLoading(true);
+  if (!file) {
+    setLoading(false);
+    return;
+  }
 
-    return () => clearInterval(interval);
-  }, [jobId]);
-
-  const uploadMenu = async () => {
-    if (!file) return;
-
-    setStep('Uploading menu image...');
-    setProgress(5);
-
+  try {
     const formData = new FormData();
-    formData.append('menu', file);
+    formData.append("menu", file);
 
     const res = await fetch(link, {
-      method: 'POST',
+      method: "POST",
       body: formData,
     });
 
     const data = await res.json();
-    setJobId(data.job_id);
-  };
+
+    const normalizedMenu = normalizeAIMenu(data.result);
+
+    localStorage.setItem(
+      "restaurant_menu",
+      JSON.stringify(normalizedMenu)
+    );
+
+    navigate("/register/restaurant-3");
+  } catch (err) {
+    console.error("Menu upload failed:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="relative h-screen bg-[#08090a]/95 flex justify-center items-center">
@@ -66,9 +77,8 @@ export default function RestaurantPageTwo() {
         <p className="text-white/60 text-sm mb-8">
           Upload a clear image — we’ll handle the rest.
         </p>
-
-        {/* Upload box */}
-        {!jobId && (
+               
+        {!file && (
           <label className="flex flex-col items-center justify-center border border-white/15 rounded-2xl h-48 cursor-pointer hover:border-white/30 transition">
             <input
               type="file"
@@ -87,37 +97,16 @@ export default function RestaurantPageTwo() {
           </label>
         )}
 
-        {/* Progress */}
-        {jobId && (
-          <div className="mt-8">
-            <p className="text-white/80 text-sm mb-2">
-              {step}
-            </p>
-
-            <LinearProgress
-              variant="determinate"
-              value={progress}
-              sx={{
-                height: 8,
-                borderRadius: 10,
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                '& .MuiLinearProgress-bar': {
-                  backgroundColor: 'rgba(56,189,248,0.9)', // cyan glow
-                },
-              }}
-            />
-
-            <p className="text-white/40 text-xs mt-2">
-              {progress}% completed
-            </p>
-          </div>
-        )}
-
-        {/* Actions */}
-        {!jobId && (
+          {file && (
+            <div className='flex justify-center items-center max-w-50, max-h-50'>
+              <img src={URL.createObjectURL(file)} className='max-w-60, max-h-60' alt="" />
+            </div>
+          )}
+        
           <Button
             fullWidth
             variant="outlined"
+            loading={loading}
             onClick={uploadMenu}
             disabled={!file}
             sx={{
@@ -139,7 +128,7 @@ export default function RestaurantPageTwo() {
           >
             Start menu scan
           </Button>
-        )}
+        
       </div>
     </div>
   );
