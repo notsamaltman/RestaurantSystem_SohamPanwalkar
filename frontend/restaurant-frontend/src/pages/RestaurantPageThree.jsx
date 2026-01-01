@@ -1,5 +1,4 @@
-import GlassBrandBar from '../components/GlassBrandBar';
-import { Button, TextField, Chip, Switch } from '@mui/material';
+import { Button, TextField, Chip, Switch, Alert, Stack } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { serverLink } from '@/utils/links';
@@ -7,17 +6,14 @@ import { serverLink } from '@/utils/links';
 export default function RestaurantPageThree() {
   const navigate = useNavigate();
   const [menu, setMenu] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const link = serverLink+'register/';
 
   useEffect(() => {
     if(localStorage.getItem("stage-2")!=="true") navigate("/register/restaurant-2");
     const stored = localStorage.getItem("restaurant_menu");
   if (!stored){
-    localStorage.setItem("stage-2", "false");
-    navigate("/register/restaurant-2");
-  }
-
-  if(stored==[]) {
     localStorage.setItem("stage-2", "false");
     navigate("/register/restaurant-2");
   }
@@ -40,38 +36,74 @@ export default function RestaurantPageThree() {
     setMenu(updated);
   };
 
-  const finalizeMenu =async () => {
+    const isMenuValid = () => {
+    if (!menu || menu.length === 0) return false;
+
+    for (let i = 0; i < menu.length; i++) {
+      const item = menu[i];
+
+      if (
+        !item.name?.trim() ||
+        !item.description?.trim() ||
+        !item.category?.trim() ||
+        item.price === undefined ||
+        item.price === null ||
+        item.price === "" ||
+        Number(item.price) <= 0
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+    const finalizeMenu = async () => {
+    if (!isMenuValid()) {
+      setError("Please fill all menu fields correctly before continuing.");
+      return;
+    }
+
+    setLoading(true);
     localStorage.setItem('restaurant_menu', JSON.stringify(menu));
+
     const restaurant_name = localStorage.getItem("restaurant_name");
     const restaurant_description = localStorage.getItem("restaurant_description");
     const restaurant_address = localStorage.getItem("restaurant_address");
     const restaurant_tables = localStorage.getItem("restaurant_tables");
     const token = localStorage.getItem("accessToken");
 
-    const response = await fetch(link, 
-        {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        'restaurant_name': restaurant_name,
-        'restaurant_description':restaurant_description,
-        'restaurant_address':restaurant_address,
-        'restaurant_tables':restaurant_tables,
-        'restaurant_menu': JSON.stringify(menu)
-      }),
-    }
-    );
+    try {
+      const response = await fetch(link, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          restaurant_name,
+          restaurant_description,
+          restaurant_address,
+          restaurant_tables,
+          restaurant_menu: JSON.stringify(menu),
+        }),
+      });
 
-    const data = await response.json();
-    if(!response.ok){
+      if (!response.ok) {
+        setError("Failed to finish setup. Please try again.");
+        setLoading(false);
         return;
-    }
+      }
+      localStorage.setItem("has_restaurant", "true");
+      navigate('/dashboard');
 
-    navigate('/dashboard'); 
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      setError("Network error. Please try again.");
+    }
   };
+
 
   return (
     <div className="relative min-h-screen bg-[#08090a]/95 px-6 py-24">
@@ -152,6 +184,12 @@ export default function RestaurantPageThree() {
           AI suggested this — tweak anything before going live.
         </p>
 
+        {error && (
+          <Stack sx={{ mb: 2 }}>
+            <Alert severity="error">{error}</Alert>
+          </Stack>
+        )}
+
         <div className="space-y-6">
           {menu.map((item, i) => (
             <div
@@ -216,6 +254,7 @@ export default function RestaurantPageThree() {
         <Button
           fullWidth
           variant="outlined"
+          loading={loading}
           onClick={finalizeMenu}
           sx={{
             mt: 10,

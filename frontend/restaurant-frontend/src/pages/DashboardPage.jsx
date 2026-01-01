@@ -1,10 +1,29 @@
-import { Box, Typography, Button, Container, Paper } from "@mui/material";
+import { serverLink } from "@/utils/links";
+import { Box, Typography, Button, Container, Paper, Grid, Dialog, DialogTitle, DialogActions } from "@mui/material";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const hasRestaurant = false;
+  const hasRestaurant = localStorage.getItem("has_restaurant")==="true";
   const firstName = localStorage.getItem("first_name");
+  const restaurantName = localStorage.getItem("restaurant_name");
+  const restaurantDescription = localStorage.getItem("restaurant_description");
+  const restaurantAddress = localStorage.getItem("restaurant_address");
+  const restaurantTables = localStorage.getItem("restaurant_tables");
+
+  const link = serverLink+'remove/';
+
+  const [open, setOpen] = useState(false);
+  const[loading, setLoading] = useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   const handleLogOut = ()=>{
     localStorage.removeItem("accessToken");
@@ -16,6 +35,35 @@ export default function DashboardPage() {
 
     navigate("/login");
   };
+
+  const removeRestaurant = async ()=>{
+    try {
+      setLoading(true);
+      const response = await fetch(link, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          "user":""
+        }),
+      });
+
+      if (!response.ok) {
+        setError("Failed to finish setup. Please try again.");
+        setLoading(false);
+        return;
+      }
+      localStorage.setItem("has_restaurant", "true");
+      navigate('/dashboard');
+
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      setError("Network error. Please try again.");
+    }
+  }
 
   return (
 
@@ -83,7 +131,7 @@ export default function DashboardPage() {
           variant="h3"
           sx={{ fontWeight: 700, mb: 2 }}
         >
-          {!hasRestaurant?("Welcome, "+firstName+" let's get started digitizing your first restaurant"):("welcome, "+firstName)}
+          {!hasRestaurant?("Welcome, "+firstName+" let's get started digitizing your first restaurant"):("Welcome, "+firstName+"!")}
         </Typography>
 
         <Typography
@@ -130,6 +178,98 @@ export default function DashboardPage() {
             </Button>
           </Paper>
         )}
+        {hasRestaurant && (
+          <Paper
+            sx={{
+              backgroundColor: "rgba(2,6,23,0.85)",
+              border: "1px solid #1e293b",
+              borderRadius: 4,
+              p: 4,
+              maxWidth: 520,
+              width: "100%",
+              textAlign: "left",
+            }}
+          >
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+              {restaurantName}
+            </Typography>
+
+            <Typography sx={{ color: "#94a3b8", mb: 1 }}>
+              {restaurantDescription}
+            </Typography>
+
+            <Typography sx={{ color: "#94a3b8", mb: 0.5 }}>
+              📍 {restaurantAddress}
+            </Typography>
+
+            <Typography sx={{ color: "#94a3b8", mb: 3 }}>
+              🍽️ Tables: {restaurantTables}
+            </Typography>
+
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Button
+                  fullWidth
+                  onClick={() => navigate("/dashboard/qrs")}
+                >
+                  QR Codes
+                </Button>
+              </Grid>
+
+              <Grid item xs={6}>
+                <Button
+                  fullWidth
+                  onClick={() => navigate("/dashboard/manage")}
+                >
+                  Manage Orders
+                </Button>
+              </Grid>
+
+              <Grid item xs={6}>
+                <Button
+                  fullWidth
+                  onClick={() => navigate("/dashboard/history")}
+                >
+                  Order History
+                </Button>
+              </Grid>
+
+              <Grid item xs={6}>
+                <Button
+                  fullWidth
+                  color="error"
+                  onClick={() => {
+                    handleClickOpen();
+                  }}
+                >
+                  Delete Restaurant
+                </Button>
+
+                <Dialog
+                  open={open}
+                  onClose={handleClose}
+                  aria-labelledby="alert-dialog-title"
+                  aria-describedby="alert-dialog-description"
+                >
+                  <DialogTitle id="alert-dialog-title">
+                    {"Are you sure you want to delete your restaurant?"}
+                  </DialogTitle>
+              
+                  <DialogActions>
+                    <Button onClick={handleClose}>Disagree</Button>
+                    <Button onClick={()=>{
+                      removeRestaurant();
+                    }} autoFocus loading={loading}>
+                      Agree
+                    </Button>
+                  </DialogActions>
+                </Dialog>
+
+              </Grid>
+            </Grid>
+          </Paper>
+        )}
+
       </Container>
     </Box>
   );

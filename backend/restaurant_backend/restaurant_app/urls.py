@@ -8,6 +8,7 @@ urlpatterns = [
     path('login/', views.login_user),
     path('register/', views.register_restaurant),
     path('upload/', views.upload_menu),
+    path('remove/', views.remove_restaurant),
 ]
 
 if settings.DEBUG:
