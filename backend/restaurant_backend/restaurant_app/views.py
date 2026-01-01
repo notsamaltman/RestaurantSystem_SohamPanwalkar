@@ -101,18 +101,27 @@ def upload_menu(request):
 
     image_path = os.path.join(upload_dir, f"{job_id}.jpg")
 
-    with open(image_path, "wb+") as f:
-        for chunk in image.chunks():
-            f.write(chunk)
+    try:
+        with open(image_path, "wb+") as f:
+            for chunk in image.chunks():
+                f.write(chunk)
 
-    result = pipeline(image_path)
-    cleaned = result.replace("```json", "").replace("```", "").strip()
+        # OCR
+        result = pipeline(image_path)
+        cleaned = result.replace("```json", "").replace("```", "").strip()
+        parsed = json.loads(cleaned)
 
-    parsed = json.loads(cleaned)
+        print(parsed)
 
-    return Response({
-        "result": parsed,
-    }, status=202)
+        return Response(
+            {"result": parsed},
+            status=202
+        )
+
+    finally:
+        # ✅ Delete image after OCR (even if something fails)
+        if os.path.exists(image_path):
+            os.remove(image_path)
 
 
 

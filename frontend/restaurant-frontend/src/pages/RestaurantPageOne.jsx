@@ -9,7 +9,7 @@ export default function RestaurantPageOne() {
     const navigate = useNavigate();
 
     useEffect(()=>{
-        if(localStorage.getItem("stage-1")) navigate("/register/restaurant-1");
+        if(localStorage.getItem("stage-1")==="true") navigate("/register/restaurant-2");
     }, [])
 
   const [form, setForm] = useState({
@@ -36,7 +36,7 @@ export default function RestaurantPageOne() {
     localStorage.setItem("restaurant_description", form.description);
     localStorage.setItem("restaurant_address", form.address);
     localStorage.setItem("restaurant_tables", form.tables);
-    localStorage.setItem("stage-1", true);
+    localStorage.setItem("stage-1", "true");
 
     navigate("/register/restaurant-2");
   }

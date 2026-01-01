@@ -11,23 +11,27 @@ export default function RestaurantPageTwo() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const normalizeAIMenu = (parsed) => {
-  if (!parsed || !parsed.categories) return [];
+  useEffect(()=>{
+    if(localStorage.getItem("stage-2")==="true") navigate("/register/restaurant-3");
+    if(localStorage.getItem("stage-2")!=="true") navigate("/register/restaurant-1");
+  }, []);
 
-  return parsed.categories.flatMap(category =>
-    category.dishes.map(dish => ({
-      name: dish.name,
+  const normalizeAIMenu = (parsed) => {
+  if (!parsed || !Array.isArray(parsed.menu)) return null;
+
+  return parsed.menu.flatMap(section =>
+    section.dishes.map(dish => ({
+      name: dish.name ?? "",
       price: dish.price ?? "",
       description:
         dish.description ||
         dish.ai_suggested_description ||
         "",
-      category: category.name,
-      veg: !/chicken|prawns|fish|mutton|egg/i.test(dish.name),
+      category: section.category,
+      veg: !/chicken|prawns|fish|mutton|lamb|egg/i.test(dish.name),
     }))
   );
-  };
-
+};
 
 const uploadMenu = async () => {
   setLoading(true);
@@ -39,21 +43,30 @@ const uploadMenu = async () => {
   try {
     const formData = new FormData();
     formData.append("menu", file);
+    const token = localStorage.getItem("accessToken");
 
     const res = await fetch(link, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       method: "POST",
       body: formData,
     });
 
     const data = await res.json();
-
+    console.log(data);
     const normalizedMenu = normalizeAIMenu(data.result);
+
+    if (!normalizedMenu || normalizedMenu.length === 0) {
+      throw new Error("Menu normalization failed");
+    }
 
     localStorage.setItem(
       "restaurant_menu",
       JSON.stringify(normalizedMenu)
     );
-
+    localStorage.setItem("stage-2", "true");
+    console.log(JSON.stringify(normalizedMenu));
     navigate("/register/restaurant-3");
   } catch (err) {
     console.error("Menu upload failed:", err);
@@ -64,7 +77,75 @@ const uploadMenu = async () => {
 
   return (
     <div className="relative h-screen bg-[#08090a]/95 flex justify-center items-center">
-      <GlassBrandBar topheight={100} />
+        <div className="fixed top-0 left-0 w-full z-50">
+
+        <div
+        style={{top:60}}
+          className="
+            mx-auto
+            max-w-6xl
+            rounded-2xl
+            px-6
+            py-4
+            relative
+            flex
+            items-center
+            justify-between
+            backdrop-blur-xl
+            bg-blue-900/10
+            border-b
+            border-white/20
+            shadow-lg
+          "
+        >
+
+          <Button
+          variant="outlined"
+          onClick={() => {
+            localStorage.setItem("restaurant_name", null);
+            localStorage.setItem("restaurant_description", null);
+            localStorage.setItem("restaurant_address", null);
+            localStorage.setItem("restaurant_tables", null);
+            localStorage.setItem("stage-1", "false");
+            navigate("/register/restaurant-1");
+          }}
+          sx={{
+            mb: 3,
+            px: 3,
+            py: 1,
+            borderRadius: '14px',
+            textTransform: 'none',
+            color: 'rgba(255,255,255,0.85)',
+            borderColor: 'rgba(255,255,255,0.25)',
+            backgroundColor: 'rgba(255,255,255,0.04)',
+            backdropFilter: 'blur(10px)',
+            alignSelf: 'flex-start',
+            alignItems:'center',
+            '&:hover': {
+              backgroundColor: 'rgba(255,255,255,0.12)',
+              borderColor: 'rgba(255,255,255,0.45)',
+            },
+          }}
+        >
+          ← Back
+        </Button>
+
+          {/* Brand */}
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center text-lg font-bold">
+              🍽️
+            </div>
+            <span className="text-xl text-white font-semibold tracking-tight">
+              Dinely
+            </span>
+          </div>
+
+          {/* Page Context (not navigation) */}
+          <div className="text-sm text-white/70 hidden sm:block">
+            making your restaurant faster!
+          </div>
+        </div>
+      </div>
 
       <div className="w-[140] rounded-3xl bg-blue-900/5 backdrop-blur-xl border border-white/10 shadow-xl p-10">
         

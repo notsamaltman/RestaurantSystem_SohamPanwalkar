@@ -12,46 +12,66 @@ def pipeline( path: str, ) -> str:
     reader = easyocr.Reader(['en'], gpu=False)
     ocrtext = reader.readtext(path, detail=0, paragraph=True)
 
-    print("\nRAW OCR OUTPUT:")
-    for line in ocrtext:
-        print(line)
-
     menu_text = "\n".join(ocrtext)
 
     prompt = ChatPromptTemplate.from_messages([
-        ("system",
-        """
-        You are an expert restaurant menu parser.
+    (
+            "system",
+            """
+    You are an expert restaurant menu parser.
 
-        Your job:
-        1. Extract dishes exactly as they appear.
-        2. NEVER invent dishes or prices.
-        3. If a dish description exists in text → keep it.
-        4. If a description does NOT exist → generate a short, realistic
-           AI-based suggestion and store it separately.
+    CRITICAL RULES (must follow exactly):
+    - You MUST output JSON in the EXACT schema described below.
+    - Do NOT add, remove, or rename any keys.
+    - Do NOT include explanations, comments, or extra text.
+    - Do NOT wrap JSON in markdown.
+    - If extraction fails, still return valid JSON with empty arrays (never null).
 
-        Output strict JSON only.
-        """),
+    TARGET OUTPUT SCHEMA (EXACT):
+    {{
+    "menu": [
+        {{
+        "category": string,
+        "dishes": [
+            {{
+            "name": string,
+            "price": number | null,
+            "description": string | null,
+            "ai_suggested_description": string | null
+            }}
+        ]
+        }}
+    ]
+    }}
+            """
+        ),
+        (
+            "human",
+            """
+    TASK:
+    Extract all dishes from the menu text below and return them in the EXACT schema.
 
-        ("human",
-        """
-        Extract all dishes from the menu below.
+    STRICT INSTRUCTIONS:
+    1. Every dish MUST belong to a category.
+    - If the category is not explicitly stated, infer the most reasonable category name.
+    2. NEVER invent dishes or prices.
+    3. Prices must be numbers only (no currency symbols).
+    4. If a dish description exists in the text:
+    - Set "description" to that value
+    - Set "ai_suggested_description" to null
+    5. If a dish description does NOT exist:
+    - Set "description" to null
+    - Generate a short, realistic AI description and store it in "ai_suggested_description"
+    6. NEVER put generated text into "description".
+    7. NEVER return null for "menu" or "dishes" — use empty arrays instead.
+    8. Return ONLY valid JSON. No markdown. No commentary.
 
-        Rules:
-        - Return ONLY valid JSON
-        - Group dishes by category if present
-        - Each dish must have:
-            - name (string)
-            - price (number or null)
-            - description (string or null)
-            - ai_suggested_description (string or null)
-        - If description exists → ai_suggested_description MUST be null
-        - Do NOT hallucinate dishes or prices
-
-        MENU TEXT:
-        {menu_text}
-        """)
+    MENU TEXT:
+    {menu_text}
+            """
+        )
     ])
+
 
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",

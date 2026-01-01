@@ -10,8 +10,17 @@ export default function RestaurantPageThree() {
   const link = serverLink+'register/';
 
   useEffect(() => {
-  const stored = localStorage.getItem("restaurant_menu");
-  if (!stored) return;
+    if(localStorage.getItem("stage-2")!=="true") navigate("/register/restaurant-2");
+    const stored = localStorage.getItem("restaurant_menu");
+  if (!stored){
+    localStorage.setItem("stage-2", "false");
+    navigate("/register/restaurant-2");
+  }
+
+  if(stored==[]) {
+    localStorage.setItem("stage-2", "false");
+    navigate("/register/restaurant-2");
+  }
 
   try {
     const cleaned = stored
@@ -33,6 +42,10 @@ export default function RestaurantPageThree() {
 
   const finalizeMenu =async () => {
     localStorage.setItem('restaurant_menu', JSON.stringify(menu));
+    const restaurant_name = localStorage.getItem("restaurant_name");
+    const restaurant_description = localStorage.getItem("restaurant_description");
+    const restaurant_address = localStorage.getItem("restaurant_address");
+    const restaurant_tables = localStorage.getItem("restaurant_tables");
     const token = localStorage.getItem("accessToken");
 
     const response = await fetch(link, 
@@ -43,6 +56,10 @@ export default function RestaurantPageThree() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
+        'restaurant_name': restaurant_name,
+        'restaurant_description':restaurant_description,
+        'restaurant_address':restaurant_address,
+        'restaurant_tables':restaurant_tables,
         'restaurant_menu': JSON.stringify(menu)
       }),
     }
@@ -53,15 +70,81 @@ export default function RestaurantPageThree() {
         return;
     }
 
-
     navigate('/dashboard'); 
   };
 
   return (
     <div className="relative min-h-screen bg-[#08090a]/95 px-6 py-24">
-      <GlassBrandBar topheight={60} />
 
-      <div className="max-w-5xl mx-auto relative top-20">
+      <div className="fixed top-0 left-0 w-full z-50">
+
+      <div
+      style={{top:60}}
+        className="
+          mx-auto
+          max-w-6xl
+          rounded-2xl
+          px-6
+          py-4
+          relative
+          flex
+          items-center
+          justify-between
+          backdrop-blur-xl
+          bg-blue-900/10
+          border-b
+          border-white/20
+          shadow-lg
+        "
+      >
+
+        <Button
+        variant="outlined"
+        onClick={() => {
+          localStorage.setItem("restaurant_menu", null);
+          localStorage.setItem("stage-2", "false");
+          navigate("/register/restaurant-2");
+        }}
+        sx={{
+          mb: 3,
+          px: 3,
+          py: 1,
+          borderRadius: '14px',
+          textTransform: 'none',
+          color: 'rgba(255,255,255,0.85)',
+          borderColor: 'rgba(255,255,255,0.25)',
+          backgroundColor: 'rgba(255,255,255,0.04)',
+          backdropFilter: 'blur(10px)',
+          alignSelf: 'flex-start',
+          alignItems:'center',
+          '&:hover': {
+            backgroundColor: 'rgba(255,255,255,0.12)',
+            borderColor: 'rgba(255,255,255,0.45)',
+          },
+        }}
+      >
+        ← Back
+      </Button>
+
+        {/* Brand */}
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center text-lg font-bold">
+            🍽️
+          </div>
+          <span className="text-xl text-white font-semibold tracking-tight">
+            Dinely
+          </span>
+        </div>
+
+        {/* Page Context (not navigation) */}
+        <div className="text-sm text-white/70 hidden sm:block">
+          making your restaurant faster!
+        </div>
+      </div>
+    </div>
+
+      <div className="max-w-5xl mx-auto relative top-30">
+
         <h1 className="text-3xl font-semibold text-white mb-2">
           Review your menu
         </h1>
