@@ -168,6 +168,7 @@ def register_restaurant(request):
                 description=item.get("description", ""),
                 price=item["price"],
                 is_available=True,
+                is_veg=item.get("veg", True)
             )
             for item in menu_items
         ]
@@ -183,7 +184,7 @@ def register_restaurant(request):
                 qr_token=token,
             )
 
-            qr_url = f"https://yourdomain.com/order?token={token}"
+            qr_url = f"http://localhost:5173/customer/order/{restaurant.id}/{table_number}/"
 
             qr_path = generate_qr(
                 link=qr_url,
@@ -226,7 +227,41 @@ def remove_restaurant(request):
         status=200
     )
 
+@api_view(["GET"])
+def get_info(request, restaurant_id):
+    try:
+        restaurant = Restaurant.objects.get(id=restaurant_id)
+    except Restaurant.DoesNotExist:
+        return Response({"error": "Restaurant not found"}, status=404)
 
+    # Use 'items' because that's the related_name in MenuItem
+    categories = MenuCategory.objects.filter(restaurant=restaurant).prefetch_related('items')
+
+    menu = []
+    for category in categories:
+        menu.append({
+            "category": category.name,
+            "items": [
+                {
+                    "id": item.id,
+                    "name": item.name,
+                    "description": item.description,
+                    "price": float(item.price),
+                    "veg": getattr(item, 'is_veg', True),  # Add if you implement veg/non-veg later
+                    "available": item.is_available,
+                }
+                for item in category.items.all()
+            ]
+        })
+
+    return Response({
+        "restaurant": {
+            "name": restaurant.name,
+            "description": restaurant.description,
+            "address": restaurant.address,
+        },
+        "menu": menu,
+    })
 
 
 

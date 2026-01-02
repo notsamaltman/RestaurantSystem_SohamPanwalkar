@@ -9,6 +9,7 @@ urlpatterns = [
     path('register/', views.register_restaurant),
     path('upload/', views.upload_menu),
     path('remove/', views.remove_restaurant),
+    path('info/<int:restaurant_id>/', views.get_info),
 ]
 
 if settings.DEBUG:

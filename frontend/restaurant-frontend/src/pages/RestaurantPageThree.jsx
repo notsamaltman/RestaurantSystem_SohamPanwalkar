@@ -90,12 +90,14 @@ export default function RestaurantPageThree() {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
         setError("Failed to finish setup. Please try again.");
         setLoading(false);
         return;
       }
-      localStorage.setItem("restaurant_id", response.response_id);
+      localStorage.setItem("restaurant_id", data.restaurant_id);
       localStorage.setItem("has_restaurant", "true");
       navigate('/dashboard');
 

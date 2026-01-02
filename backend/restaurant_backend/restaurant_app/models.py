@@ -60,6 +60,7 @@ class MenuItem(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
+    is_veg = models.BooleanField(default=False)
     is_available = models.BooleanField(default=True)
 
     def __str__(self):

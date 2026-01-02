@@ -7,6 +7,7 @@ import RestaurantPageOne from "./pages/RestaurantPageOne";
 import RestaurantPageTwo from "./pages/RestaurantPageTwo";
 import RestaurantPageThree from "./pages/RestaurantPageThree";
 import TablesQRPage from "./pages/TablesQRPage";
+import OrderingPage from "./pages/customer/OrderPage";
 import { ProtectedRoutes } from "./utils/auth";
 
 function App() {
@@ -43,7 +44,7 @@ function App() {
           </ProtectedRoutes>
         } />
         <Route path="/customer/order/:restaurant_id/:table_id" element={
-          null
+          <OrderingPage/>
         } />
       </Routes>
     </BrowserRouter>
