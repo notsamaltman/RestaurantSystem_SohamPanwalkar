@@ -85,99 +85,6 @@ def login_user(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def register_restaurant(request):
-    data = request.data
-
-    try:
-        menu_items = json.loads(data.get("restaurant_menu", "[]"))
-    except json.JSONDecodeError:
-        return Response({"error": "Invalid menu format"}, status=400)
-
-    if not menu_items:
-        return Response({"error": "Menu cannot be empty"}, status=400)
-
-    try:
-        table_count = int(data.get("restaurant_tables", 0))
-        if table_count <= 0:
-            raise ValueError
-    except ValueError:
-        return Response({"error": "Invalid number of tables"}, status=400)
-
-    with transaction.atomic():
-
-        restaurant = Restaurant.objects.create(
-            name=data.get("restaurant_name"),
-            description=data.get("restaurant_description", ""),
-            address=data.get("restaurant_address"),
-            no_of_tables=table_count,
-        )
-
-        category_map = {}  # name -> MenuCategory
-
-        for item in menu_items:
-            category_name = item.get("category", "").strip()
-
-            if not category_name:
-                return Response({"error": "Menu item missing category"}, status=400)
-
-            if category_name not in category_map:
-                category_obj, _ = MenuCategory.objects.get_or_create(
-                    restaurant=restaurant,
-                    name=category_name,
-                )
-                category_map[category_name] = category_obj
-
-        menu_objects = []
-
-        for item in menu_items:
-            menu_objects.append(
-                MenuItem(
-                    category=category_map[item["category"]],
-                    name=item["name"],
-                    description=item.get("description", ""),
-                    price=item["price"],
-                    is_available=True,
-                )
-            )
-
-        MenuItem.objects.bulk_create(menu_objects)
-
-        for table_number in range(1, table_count + 1):
-            token = uuid.uuid4().hex
-
-            table = Table.objects.create(
-                restaurant=restaurant,
-                table_number=table_number,
-                qr_token=token,
-            )
-
-            qr_url = (
-                f"https://yourdomain.com/order?"
-                f"token={token}"
-            )
-
-            qr_path = generate_qr(
-                link=qr_url,
-                filename=f"restaurant_{restaurant.id}_table_{table_number}"
-            )
-
-            table.qr_image = qr_path
-            table.save()
-
-    return Response(
-        {
-            "message": "Restaurant setup completed",
-            "restaurant_id": restaurant.id,
-            "tables_created": table_count,
-            "categories": len(category_map),
-            "menu_items": len(menu_objects),
-        },
-        status=201
-    )
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
 def upload_menu(request):
     image = request.FILES.get("menu")
 
@@ -212,33 +119,114 @@ def upload_menu(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def remove_restaurant(request):
-    user = request.user
-
-    restaurant = get_object_or_404(Restaurant, owner=user)
+def register_restaurant(request):
+    data = request.data
+    user = request.user   
 
     try:
-        with transaction.atomic():
-            # Delete QR images
-            for table in restaurant.tables.all():
-                if table.qr_image and os.path.isfile(table.qr_image.path):
-                    os.remove(table.qr_image.path)
+        menu_items = json.loads(data.get("restaurant_menu", "[]"))
+    except json.JSONDecodeError:
+        return Response({"error": "Invalid menu format"}, status=400)
 
-            # Delete menu images
-            for img in restaurant.menu_images.all():
-                if img.image and os.path.isfile(img.image.path):
-                    os.remove(img.image.path)
+    if not menu_items:
+        return Response({"error": "Menu cannot be empty"}, status=400)
 
-            restaurant.delete()
+    try:
+        table_count = int(data.get("restaurant_tables", 0))
+        if table_count <= 0:
+            raise ValueError
+    except ValueError:
+        return Response({"error": "Invalid number of tables"}, status=400)
 
-        return Response({"message": "Restaurant deleted successfully"}, status=200)
-
-    except Exception as e:
-        print(e)
-        return Response(
-            {"error": "Failed to delete restaurant"}, 
-            status=500
+    with transaction.atomic():
+        restaurant = Restaurant.objects.create(
+            owner=user,
+            name=data.get("restaurant_name"),
+            description=data.get("restaurant_description", ""),
+            address=data.get("restaurant_address"),
+            no_of_tables=table_count,
         )
+
+        category_map = {}
+
+        for item in menu_items:
+            category_name = item.get("category", "").strip()
+            if not category_name:
+                return Response({"error": "Menu item missing category"}, status=400)
+
+            if category_name not in category_map:
+                category_obj, _ = MenuCategory.objects.get_or_create(
+                    restaurant=restaurant,
+                    name=category_name,
+                )
+                category_map[category_name] = category_obj
+
+        menu_objects = [
+            MenuItem(
+                category=category_map[item["category"]],
+                name=item["name"],
+                description=item.get("description", ""),
+                price=item["price"],
+                is_available=True,
+            )
+            for item in menu_items
+        ]
+
+        MenuItem.objects.bulk_create(menu_objects)
+
+        for table_number in range(1, table_count + 1):
+            token = uuid.uuid4().hex
+
+            table = Table.objects.create(
+                restaurant=restaurant,
+                table_number=table_number,
+                qr_token=token,
+            )
+
+            qr_url = f"https://yourdomain.com/order?token={token}"
+
+            qr_path = generate_qr(
+                link=qr_url,
+                filename=f"restaurant_{restaurant.id}_table_{table_number}"
+            )
+
+            table.qr_image = qr_path
+            table.save()
+
+    return Response(
+        {
+            "message": "Restaurant setup completed",
+            "restaurant_id": restaurant.id,
+            "tables_created": table_count,
+            "categories": len(category_map),
+            "menu_items": len(menu_objects),
+        },
+        status=201
+    )
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def remove_restaurant(request):
+    restaurant = get_object_or_404(Restaurant, owner=request.user)
+
+    with transaction.atomic():
+        for table in restaurant.tables.all():
+            if table.qr_image:
+                try:
+                    file_path = table.qr_image.path
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                except Exception as e:
+                    print("QR delete error:", e)
+
+        restaurant.delete()
+
+    return Response(
+        {"message": "Restaurant deleted successfully"},
+        status=200
+    )
+
+
 
 
 

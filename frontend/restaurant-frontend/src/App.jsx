@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage";
 import RestaurantPageOne from "./pages/RestaurantPageOne";
 import RestaurantPageTwo from "./pages/RestaurantPageTwo";
 import RestaurantPageThree from "./pages/RestaurantPageThree";
+import TablesQRPage from "./pages/TablesQRPage";
 import { ProtectedRoutes } from "./utils/auth";
 
 function App() {
@@ -35,6 +36,14 @@ function App() {
           <ProtectedRoutes>
             <RestaurantPageThree/>
           </ProtectedRoutes>
+        } />
+        <Route path="/dashboard/qrs" element={
+          <ProtectedRoutes>
+            <TablesQRPage/>
+          </ProtectedRoutes>
+        } />
+        <Route path="/customer/order/:restaurant_id/:table_id" element={
+          null
         } />
       </Routes>
     </BrowserRouter>

@@ -27,4 +27,4 @@ def generate_qr(link: str, filename: str) -> str:
     file_path = os.path.join(qr_dir, f"{filename}.png")
     img.save(file_path)
 
-    return f"qr/{filename}.png"
+    return f"qrcodes/{filename}.png"

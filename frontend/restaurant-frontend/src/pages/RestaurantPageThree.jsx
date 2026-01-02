@@ -12,6 +12,7 @@ export default function RestaurantPageThree() {
 
   useEffect(() => {
     if(localStorage.getItem("stage-2")!=="true") navigate("/register/restaurant-2");
+    if(localStorage.getItem("has_restaurant")==="true") navigate("/dashboard");
     const stored = localStorage.getItem("restaurant_menu");
   if (!stored){
     localStorage.setItem("stage-2", "false");
@@ -94,6 +95,7 @@ export default function RestaurantPageThree() {
         setLoading(false);
         return;
       }
+      localStorage.setItem("restaurant_id", response.response_id);
       localStorage.setItem("has_restaurant", "true");
       navigate('/dashboard');
 

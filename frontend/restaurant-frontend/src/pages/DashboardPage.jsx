@@ -1,5 +1,5 @@
 import { serverLink } from "@/utils/links";
-import { Box, Typography, Button, Container, Paper, Grid, Dialog, DialogTitle, DialogActions } from "@mui/material";
+import { Box, Typography, Button, Container, Paper, Grid, Dialog, DialogTitle, DialogActions, Alert, Stack } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -11,9 +11,9 @@ export default function DashboardPage() {
   const restaurantDescription = localStorage.getItem("restaurant_description");
   const restaurantAddress = localStorage.getItem("restaurant_address");
   const restaurantTables = localStorage.getItem("restaurant_tables");
-
+  const token = localStorage.getItem("accessToken");
   const link = serverLink+'remove/';
-
+  const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
   const[loading, setLoading] = useState(false);
 
@@ -51,12 +51,20 @@ export default function DashboardPage() {
       });
 
       if (!response.ok) {
-        setError("Failed to finish setup. Please try again.");
+        setError("Incorrect Format. Please try again.");
         setLoading(false);
         return;
       }
-      localStorage.setItem("has_restaurant", "true");
-      navigate('/dashboard');
+      localStorage.setItem("has_restaurant", "false");
+      localStorage.removeItem("restaurant_name");
+      localStorage.removeItem("restaurant_description");
+      localStorage.removeItem("restaurant_address");
+      localStorage.removeItem("restaurant_tables");
+      localStorage.removeItem("restaurant_menu");
+      localStorage.setItem("stage-1", "false");
+      localStorage.setItem("stage-2", "false");
+      localStorage.setItem("stage-3", "false");
+      window.location.reload();
 
     } catch (err) {
       console.error(err);
@@ -127,6 +135,13 @@ export default function DashboardPage() {
           textAlign: "center",
         }}
       >
+
+        {error && (
+          <Stack sx={{ mb: 2 }}>
+            <Alert severity="error">{error}</Alert>
+          </Stack>
+        )}
+
         <Typography
           variant="h3"
           sx={{ fontWeight: 700, mb: 2 }}

@@ -13,7 +13,7 @@ export default function RestaurantPageTwo() {
 
   useEffect(()=>{
     if(localStorage.getItem("stage-2")==="true") navigate("/register/restaurant-3");
-    if(localStorage.getItem("stage-2")!=="true") navigate("/register/restaurant-1");
+    if(localStorage.getItem("stage-1")!=="true") navigate("/register/restaurant-1");
   }, []);
 
   const normalizeAIMenu = (parsed) => {
