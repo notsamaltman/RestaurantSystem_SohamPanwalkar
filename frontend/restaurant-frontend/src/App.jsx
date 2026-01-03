@@ -8,6 +8,7 @@ import RestaurantPageTwo from "./pages/RestaurantPageTwo";
 import RestaurantPageThree from "./pages/RestaurantPageThree";
 import TablesQRPage from "./pages/TablesQRPage";
 import OrderingPage from "./pages/customer/OrderPage";
+import OrderManagementPage from "./pages/ManageRestaurantPage";
 import { ProtectedRoutes } from "./utils/auth";
 
 function App() {
@@ -41,6 +42,11 @@ function App() {
         <Route path="/dashboard/qrs" element={
           <ProtectedRoutes>
             <TablesQRPage/>
+          </ProtectedRoutes>
+        } />
+        <Route path="/dashboard/manage" element={
+          <ProtectedRoutes>
+            <OrderManagementPage/>
           </ProtectedRoutes>
         } />
         <Route path="/customer/order/:restaurant_id/:table_id" element={
