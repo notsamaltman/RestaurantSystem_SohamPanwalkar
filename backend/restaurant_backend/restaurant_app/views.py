@@ -305,6 +305,68 @@ def current_orders_view(request, restaurant_id):
         "served_orders": [serialize_order(o) for o in served_orders],
     })
 
+@api_view(["POST"])
+def place_order(request, restaurant_id, table_id):
+    restaurant = get_object_or_404(
+        Restaurant,
+        id=restaurant_id,
+        is_active=True
+    )
+
+    table = get_object_or_404(
+        Table,
+        id=table_id,
+        restaurant=restaurant
+    )
+
+    items_data = request.data.get("items")
+
+    if not items_data or not isinstance(items_data, list):
+        return Response(
+            {"error": "Items list is required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    with transaction.atomic():
+        order = Order.objects.create(
+            restaurant=restaurant,
+            table=table,
+            status="pending"
+        )
+
+        for entry in items_data:
+            item_id = entry.get("item_id")
+            quantity = entry.get("quantity", 1)
+
+            if not item_id or quantity <= 0:
+                transaction.set_rollback(True)
+                return Response(
+                    {"error": "Invalid item data"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            menu_item = get_object_or_404(
+                MenuItem,
+                id=item_id,
+                category__restaurant=restaurant,
+                is_available=True
+            )
+
+            OrderItem.objects.create(
+                order=order,
+                item=menu_item,
+                quantity=quantity
+            )
+
+    return Response(
+        {
+            "message": "Order placed successfully",
+            "order_id": order.id,
+            "table": table.table_number,
+            "status": order.status
+        },
+        status=status.HTTP_201_CREATED
+    )
 
 
 

@@ -10,7 +10,7 @@ urlpatterns = [
     path('upload/', views.upload_menu),
     path('remove/', views.remove_restaurant),
     path('info/<int:restaurant_id>/', views.get_info),
-    path('placeorder/<int:restaurant_id>/<int:table_id>/', views),
+    path('placeorder/<int:restaurant_id>/<int:table_id>/', views.place_order),
 ]
 
 if settings.DEBUG:

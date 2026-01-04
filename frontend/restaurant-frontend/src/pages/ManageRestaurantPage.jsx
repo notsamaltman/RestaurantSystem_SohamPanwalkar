@@ -57,7 +57,7 @@ export default function OrderManagementPage() {
 
   const navigate = useNavigate();
 
-  useEffect(async ()=>{
+  useEffect(()=>{
     async function getOrders(){
       const response = await fetch('', {});
     }
