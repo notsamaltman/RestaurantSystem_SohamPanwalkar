@@ -24,7 +24,6 @@ import DoneAllIcon from "@mui/icons-material/DoneAll";
 import { useState, useEffect } from "react";
 import { motion } from 'framer-motion';
 import { useNavigate } from "react-router-dom";
-import { P } from "framer-motion/dist/types.d-DagZKalS";
 
 const INITIAL_ORDERS = {
   pending: [
@@ -59,8 +58,11 @@ export default function OrderManagementPage() {
   const navigate = useNavigate();
 
   useEffect(async ()=>{
-    const response = await fetch('', {});
+    async function getOrders(){
+      const response = await fetch('', {});
+    }
   }, []);
+
 
   const theme = createTheme({
     palette: {

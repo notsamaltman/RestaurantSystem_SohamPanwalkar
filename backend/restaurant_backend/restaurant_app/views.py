@@ -263,6 +263,48 @@ def get_info(request, restaurant_id):
         "menu": menu,
     })
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def current_orders_view(request, restaurant_id):
+    restaurant = get_object_or_404(
+        Restaurant,
+        id=restaurant_id,
+        owner=request.user
+    )
+
+    pending_orders = Order.objects.filter(
+        restaurant=restaurant,
+        status__in=["pending", "preparing"]
+    ).prefetch_related("items__item", "table").order_by("-created_at")
+
+    served_orders = Order.objects.filter(
+        restaurant=restaurant,
+        status="served"
+    ).prefetch_related("items__item", "table").order_by("-created_at")
+
+    def serialize_order(order):
+        return {
+            "order_id": order.id,
+            "table_number": order.table.table_number if order.table else None,
+            "status": order.status,
+            "created_at": order.created_at,
+            "items": [
+                {
+                    "name": oi.item.name,
+                    "quantity": oi.quantity,
+                    "price": oi.item.price,
+                    "is_veg": oi.item.is_veg,
+                }
+                for oi in order.items.all()
+            ],
+        }
+
+    return Response({
+        "restaurant": restaurant.name,
+        "pending_orders": [serialize_order(o) for o in pending_orders],
+        "served_orders": [serialize_order(o) for o in served_orders],
+    })
+
 
 
 
