@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-kt&0vrv)%kdnfh7)3o(sxh9!0)5f(@_8ctj8@5_%h0)ptt)mmw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["192.168.29.204"]
 
 
 # Application definition
@@ -56,7 +56,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-     "http://localhost:5173",
+    "http://192.168.29.204:5173",
+    "http://localhost:5173",
 ]
 
 ROOT_URLCONF = 'restaurant_backend.urls'

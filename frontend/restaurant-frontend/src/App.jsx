@@ -9,6 +9,7 @@ import RestaurantPageThree from "./pages/RestaurantPageThree";
 import TablesQRPage from "./pages/TablesQRPage";
 import OrderingPage from "./pages/customer/OrderPage";
 import OrderManagementPage from "./pages/ManageRestaurantPage";
+import OrderPlacedPage from "./pages/customer/OrderPlacedPage";
 import { ProtectedRoutes } from "./utils/auth";
 
 function App() {
@@ -51,6 +52,9 @@ function App() {
         } />
         <Route path="/customer/order/:restaurant_id/:table_id" element={
           <OrderingPage/>
+        } />
+        <Route path="/customer/order/:restaurant_id/:table_id/:order_id" element={
+          <OrderPlacedPage/>
         } />
       </Routes>
     </BrowserRouter>

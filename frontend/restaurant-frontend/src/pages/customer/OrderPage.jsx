@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Plus, Minus, Moon, Sun } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { Plus, Minus, Moon, Sun} from "lucide-react";
+import { Dialog, DialogActions, DialogTitle, Button, Stack, Alert } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
 import { serverLink } from "@/utils/links";
 
 export default function OrderingPage() {
@@ -8,10 +9,12 @@ export default function OrderingPage() {
   const [cart, setCart] = useState({});
   const [restaurant, setRestaurant] = useState(null);
   const [menu, setMenu] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [newloading, setnewLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [open, setOpen] = useState(false);
   const { restaurant_id, table_id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRestaurant = async () => {
@@ -33,7 +36,44 @@ export default function OrderingPage() {
       }
     };
     fetchRestaurant();
-  }, [restaurant_id]);
+  }, []);
+
+  const placeOrder = async () => {
+  setnewLoading(true);
+
+  const items = Object.values(cart).map(item => ({
+    item_id: item.id,
+    quantity: item.qty
+  }));
+
+  try {
+    const response = await fetch(
+      serverLink + `placeorder/${restaurant_id}/${table_id}/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ items }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Order failed");
+    }
+
+    const data = await response.json(); // ← IMPORTANT (see next section)
+    navigate(`/customer/order/${restaurant_id}/${table_id}/${data.order_id}`);
+
+  } catch (err) {
+    console.error(err);
+    setError("Server failed! Please try again.");
+  } finally {
+    setnewLoading(false);
+    setOpen(false);
+  }
+};
+
 
   const add = (item) => {
     setCart((c) => ({
@@ -59,7 +99,6 @@ export default function OrderingPage() {
   const total = Object.values(cart).reduce((s, i) => s + i.price * i.qty, 0);
 
   if (loading) return <div className="p-6">Loading…</div>;
-  if (error) return <div className="p-6 text-red-500">{error}</div>;
   if (!restaurant) return null;
 
   return (
@@ -95,6 +134,11 @@ export default function OrderingPage() {
 
       {/* Menu */}
       <main className="p-4 pb-32 space-y-8">
+        {error && (
+          <Stack sx={{ mb: 2 }}>
+            <Alert severity="error">{error}</Alert>
+          </Stack>
+        )}
         {menu.map((section) => (
           <section key={section.category}>
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest opacity-60">
@@ -186,6 +230,9 @@ export default function OrderingPage() {
         </div>
         <button
           disabled={!total}
+          onClick={()=>{
+            setOpen(true);
+          }}
           className="px-6 py-3 rounded-xl font-semibold disabled:opacity-40"
           style={{
             backgroundColor: dark ? "#fafafa" : "#09090b",
@@ -195,6 +242,27 @@ export default function OrderingPage() {
           Place Order
         </button>
       </footer>
+      <Dialog
+        open={open}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Are you sure you want to place this order?"}
+        </DialogTitle>
+    
+        <DialogActions>
+          <Button onClick={()=>{
+            setOpen(false)
+            setnewLoading(false);
+            }}>Disagree</Button>
+          <Button onClick={()=>{
+            placeOrder();
+          }} autoFocus loading={newloading}>
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

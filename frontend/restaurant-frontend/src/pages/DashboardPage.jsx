@@ -1,6 +1,6 @@
 import { serverLink } from "@/utils/links";
 import { Box, Typography, Button, Container, Paper, Grid, Dialog, DialogTitle, DialogActions, Alert, Stack } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function DashboardPage() {
@@ -16,6 +16,53 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
   const[loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      if (!token) return;
+
+      try {
+        const res = await fetch(serverLink + "dashboard-data/", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch dashboard data");
+
+        const data = await res.json();
+        const { user, restaurant } = data;
+
+        // --- Set user info ---
+        localStorage.setItem("first_name", user.first_name || "");
+        localStorage.setItem("last_name", user.last_name || "");
+        localStorage.setItem("email", user.email || "");
+
+        // --- Set restaurant info if exists ---
+        if (restaurant) {
+          localStorage.setItem("has_restaurant", "true");
+          localStorage.setItem("restaurant_name", restaurant.name || "");
+          localStorage.setItem("restaurant_description", restaurant.description || "");
+          localStorage.setItem("restaurant_address", restaurant.address || "");
+          localStorage.setItem("restaurant_tables", restaurant.no_of_tables || 0);
+
+          // Optionally store menu, tables, images, orders if needed
+          localStorage.setItem("restaurant_menu", JSON.stringify(restaurant.categories || []));
+          localStorage.setItem("restaurant_tables_data", JSON.stringify(restaurant.tables || []));
+          localStorage.setItem("restaurant_orders", JSON.stringify(restaurant.orders || []));
+          localStorage.setItem("restaurant_menu_images", JSON.stringify(restaurant.menu_images || []));
+        } else {
+          localStorage.setItem("has_restaurant", "false");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load dashboard data.");
+      }
+    }
+
+    fetchDashboardData();
+  }, [token]);
 
   const handleClickOpen = () => {
     setOpen(true);

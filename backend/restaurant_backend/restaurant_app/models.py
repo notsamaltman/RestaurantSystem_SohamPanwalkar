@@ -83,8 +83,7 @@ class Order(models.Model):
         ("pending", "Pending"),
         ("preparing", "Preparing"),
         ("served", "Served"),
-        ("paid", "Paid"),
-        ("cancelled", "Cancelled"),
+        ("ready", "Ready"),
     ]
 
     restaurant = models.ForeignKey(

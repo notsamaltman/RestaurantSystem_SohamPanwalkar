@@ -87,6 +87,7 @@ export default function RestaurantPageThree() {
           restaurant_address,
           restaurant_tables,
           restaurant_menu: JSON.stringify(menu),
+          frontend_base_url: window.location.origin,
         }),
       });
 

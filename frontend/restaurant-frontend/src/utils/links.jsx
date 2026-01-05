@@ -1,1 +1,1 @@
-export const serverLink = 'http://127.0.0.1:8000/';
+export const serverLink = 'http://192.168.29.204:8000/';

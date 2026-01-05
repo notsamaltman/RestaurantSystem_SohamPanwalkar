@@ -183,8 +183,8 @@ def register_restaurant(request):
                 table_number=table_number,
                 qr_token=token,
             )
-
-            qr_url = f"http://localhost:5173/customer/order/{restaurant.id}/{table_number}/"
+            frontend_base_url = request.data.get("frontend_base_url")
+            qr_url = f"{frontend_base_url}customer/order/{restaurant.id}/{table_number}/"
 
             qr_path = generate_qr(
                 link=qr_url,
@@ -265,7 +265,7 @@ def get_info(request, restaurant_id):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def current_orders_view(request, restaurant_id):
+def current_orders(request, restaurant_id):
     restaurant = get_object_or_404(
         Restaurant,
         id=restaurant_id,
@@ -315,9 +315,10 @@ def place_order(request, restaurant_id, table_id):
 
     table = get_object_or_404(
         Table,
-        id=table_id,
+        table_number=table_id,
         restaurant=restaurant
     )
+
 
     items_data = request.data.get("items")
 
@@ -368,6 +369,87 @@ def place_order(request, restaurant_id, table_id):
         status=status.HTTP_201_CREATED
     )
 
+@api_view(["GET"])
+def get_status(request, order_id):
+    order = get_object_or_404(
+        Order.objects.prefetch_related("items__item"),
+        id=order_id
+    )
 
+    items = []
+    total = 0
 
+    for oi in order.items.all():
+        price = float(oi.item.price)
+        subtotal = price * oi.quantity
+        total += subtotal
 
+        items.append({
+            "name": oi.item.name,
+            "quantity": oi.quantity,
+            "price": price,
+        })
+
+    return Response({
+        "order_id": order.id,
+        "status": order.status, 
+        "table": order.table.table_number if order.table else None,
+        "items": items,         
+        "total": total,          
+    })
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_status(request, order_id):
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+        restaurant__owner=request.user
+    )
+
+    ALLOWED_STATUSES = ["pending", "preparing", "ready", "served"]
+    new_status = request.data.get("status")
+
+    if new_status not in ALLOWED_STATUSES:
+        return Response(
+            {"error": "Invalid status"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    order.status = new_status
+    order.save()
+
+    return Response(
+        {
+            "order_id": order.id,
+            "status": order.status,
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def dashboard_data(request):
+    """
+    Returns all user and restaurant data for dashboard
+    """
+    user = request.user
+    user_data = {
+        "id": user.id,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "email": user.email,
+    }
+
+    try:
+        restaurant = Restaurant.objects.get(owner=user)
+        restaurant_data = RestaurantSerializer(restaurant).data
+        user_data["has_restaurant"] = True
+    except Restaurant.DoesNotExist:
+        restaurant_data = None
+        user_data["has_restaurant"] = False
+
+    return Response({
+        "user": user_data,
+        "restaurant": restaurant_data
+    })
