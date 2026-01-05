@@ -1,2 +1,5 @@
 venv/
 restaurant_backend/media/
+
+__pycache__/
+*.py[cod]
