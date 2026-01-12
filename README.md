@@ -1,154 +1,152 @@
-# 🍽️ Restaurant Management & QR Ordering System
+# Restaurant Management & QR Ordering System
 
-A full-stack restaurant management platform that allows restaurant owners to digitize menus using OCR + AI, generate QR codes for tables, and manage customer orders in real time through an admin dashboard.
+This is a full-stack restaurant management system built to digitize menus, simplify table ordering using QR codes, and give restaurant owners a clean way to manage incoming orders.
 
-This system replaces physical menus and manual order handling with a modern, scalable solution.
+The goal of this project was to solve a very real problem seen in restaurants — physical menus, manual order taking, and lack of a simple order tracking system.
 
 ---
 
-## ✨ Features
+## What this project does
 
-### 🔐 Authentication
+- Allows restaurant owners to register and manage their restaurant
+- Converts menu images into a structured digital menu using OCR + AI
+- Generates QR codes for tables so customers can order directly from their phone
+- Provides an admin dashboard to track and update order statuses
+
+---
+
+## Main Features
+
+### Authentication
 - JWT-based authentication
-- Role-based access (restaurant admins)
+- Protected admin routes
 
-### 🏪 Restaurant Management
-- Admins can register and manage their restaurant
-- Secure, protected admin routes
-
-### 🧾 AI-Powered Menu Digitization
+### Menu Digitization
 - Upload menu images
-- OCR extracts text from images
-- AI converts raw text into structured menu data:
-  - Categories
-  - Item names
-  - Prices
-  - Descriptions
-- AI suggestions for cleanup and normalization
+- OCR extracts text
+- AI processes the text into structured menu items (name, price, category)
+- Helpful AI suggestions to clean up messy menus
 
-### 📱 QR Code Table Ordering
+### QR-Based Ordering
 - Admin enters number of tables
-- Unique QR codes generated per table
-- QR codes link customers directly to the restaurant menu
+- Unique QR code generated for each table
+- Customers scan QR to view menu and place orders
 
-### 🛒 Customer Ordering Flow
-- Scan QR → view menu
-- Place orders from phone (no app required)
+### Order Management
 - Orders are linked to restaurant and table
-
-### 📊 Order Management Dashboard
-- View incoming orders
-- Update order status:
-  - Pending
-  - Preparing
-  - Served
-- Clear separation of active and completed orders
+- Admin dashboard shows all incoming orders
+- Order statuses can be updated (pending, preparing, served)
 
 ---
 
-## 🧠 High-Level Architecture
-
-```
-Customer (QR Scan)
-        ↓
- REST API (JWT Auth)
-        ↓
- Menu & Order Service
-        ↓
- Admin Dashboard
-```
-
-OCR + AI pipeline is triggered during menu upload and stores structured data in the database.
-
----
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 **Backend**
 - Django
 - Django REST Framework
 - JWT Authentication
+- SQLite (development)
 
-**AI / OCR**
-- OCR engine for text extraction
-- AI pipeline for menu structuring and suggestions
+**Frontend**
+- React
+- Vite
+- JavaScript
 
 **Other**
+- OCR for menu extraction
+- AI for menu structuring
 - QR code generation
-- RESTful API design
 
 ---
 
-## 📂 Project Structure (Simplified)
+## Project Structure
 
 ```
-backend/
-├── authentication/
-├── restaurant/
-├── menu/
-├── orders/
-├── ocr_pipeline/
-├── qr/
-├── manage.py
-└── requirements.txt
+RestaurantSystem_SohamPanwalkar/
+├── backend/
+│   ├── restaurant_backend/
+│   ├── restaurant_app/
+│   │   ├── ocr/
+│   │   ├── qr/
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── views.py
+│   │   └── urls.py
+│   ├── media/
+│   ├── db.sqlite3
+│   ├── manage.py
+│   └── requirements.txt
+│
+├── frontend/
+│   └── restaurant-frontend/
+│       ├── src/
+│       ├── public/
+│       ├── index.html
+│       ├── package.json
+│       └── vite.config.js
+│
+├── README.md
+└── .gitignore
 ```
 
 ---
 
-## ⚙️ Setup & Run
+## Running the Project
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/notsamaltman/RestaurantSystem_SohamPanwalkar.git
-cd RestaurantSystem_SohamPanwalkar/backend
-```
+### Backend
 
-### 2. Create a virtual environment
 ```bash
+cd backend
 python -m venv venv
 source venv/bin/activate
 # Windows: venv\Scripts\activate
-```
-
-### 3. Install dependencies
-```bash
 pip install -r requirements.txt
-```
-
-### 4. Run migrations
-```bash
 python manage.py migrate
-```
-
-### 5. Start the server
-```bash
 python manage.py runserver
 ```
 
-Server runs at:
+Backend runs on:
 ```
 http://127.0.0.1:8000/
 ```
 
 ---
 
-## 🔐 Authentication Flow
-1. Admin registers/logs in
-2. JWT access & refresh tokens issued
-3. Tokens required for protected endpoints (menu upload, QR generation, order updates)
+### Frontend
+
+```bash
+cd frontend/restaurant-frontend
+npm install
+npm run dev
+```
+
+Frontend runs on:
+```
+http://localhost:5173/
+```
 
 ---
 
-## 🚀 Future Improvements
-- Payment gateway integration
-- WebSocket-based real-time order updates
-- Analytics dashboard
-- Multi-restaurant support
-- Admin UI for manual menu edits
+## How it works (high level)
+
+1. Admin registers and logs in
+2. Menu image is uploaded and processed using OCR + AI
+3. Digital menu is stored in the database
+4. QR codes are generated for each table
+5. Customers scan QR and place orders
+6. Admin manages orders from the dashboard
 
 ---
 
-## 👨‍💻 Author
+## Possible Improvements
+- Payments integration
+- Real-time order updates using WebSockets
+- Better analytics for restaurants
+- Manual menu editing UI
+
+---
+
+## Author
 
 **Soham Deepak Panwalkar**  
 Computer Science Engineering  
